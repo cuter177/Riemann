@@ -1,0 +1,22 @@
+# ninja log v6
+23	885	7608310213331138	CMakeFiles/Riemann_3_04.dir/toPostFix.cpp.obj	8650d8cb1b13259d
+31	1860	7608484729939182	CMakeFiles/Riemann_3_04.dir/Dominio.cpp.obj	f6f56cd93767fdd7
+29	922	7608310213384119	CMakeFiles/Riemann_3_04.dir/Utils.cpp.obj	8d57aa76154a716c
+21	1401	7608484729835562	CMakeFiles/Riemann_3_04.dir/main.cpp.obj	9f894bd975507940
+7	1059	7608310213173356	CMakeFiles/Riemann_3_04.dir/cutIntegral.cpp.obj	a6b13a869038ac6e
+1861	2430	7608484748225618	Riemann_3_04.exe	90d8ccb157fcc790
+13	1246	7608310213228634	CMakeFiles/Riemann_3_04.dir/ExpressionParser.cpp.obj	8f6a7bec30848f8
+3	284	7608508158065723	build.ninja	595e37bcc7ce09ea
+51	1318	7608509001748923	CMakeFiles/Riemann_3_04.dir/toPostFix.cpp.obj	f2c9de9185d32d29
+58	1357	7608509001816129	CMakeFiles/Riemann_3_04.dir/Utils.cpp.obj	a0ef676eb866d208
+9	1530	7608509001320463	CMakeFiles/Riemann_3_04.dir/cutIntegral.cpp.obj	65522ab30a159dd0
+34	1556	7608509001568909	CMakeFiles/Riemann_3_04.dir/main.cpp.obj	5306a7721f8f9182
+18	1683	7608509001415697	CMakeFiles/Riemann_3_04.dir/ExpressionParser.cpp.obj	642a72ead86e6f82
+65	4001	7608509001888579	CMakeFiles/Riemann_3_04.dir/Dominio.cpp.obj	b56abea31ff2685
+4001	4733	7608509041233732	Riemann_3_04.exe	90d8ccb157fcc790
+19	3986	7608513000413124	CMakeFiles/Riemann_3_04.dir/Dominio.cpp.obj	b56abea31ff2685
+3987	4679	7608513040087393	Riemann_3_04.exe	90d8ccb157fcc790
+19	3861	7608514290134513	CMakeFiles/Riemann_3_04.dir/Dominio.cpp.obj	b56abea31ff2685
+3862	4579	7608514328563963	Riemann_3_04.exe	90d8ccb157fcc790
+15	3832	7608520988282939	CMakeFiles/Riemann_3_04.dir/Dominio.cpp.obj	b56abea31ff2685
+3833	4504	7608521026463796	Riemann_3_04.exe	90d8ccb157fcc790
