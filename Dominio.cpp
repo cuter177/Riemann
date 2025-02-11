@@ -122,11 +122,10 @@ void Dominio::guardarEnJson(const std::string& filename) {
     std::cout << "Archivo JSON guardado en: " << rutaCompleta.string() << std::endl;
 }
 
-void Dominio::guardarRectangulosJson(const std::string& filename,double limInferior,double limSuperior,double deltaX){
+void Dominio::guardarRectangulosJson(const std::string& filename, double limInferior, double limSuperior, double deltaX) {
     json jsonData;
     jsonData["rectangulos"] = json::array();
 
-    // Evitar errores de precisión con números decimales
     const double epsilon = 1e-9;
     const int totalPasos = static_cast<int>((limSuperior - limInferior) / deltaX + epsilon);
 
@@ -136,40 +135,24 @@ void Dominio::guardarRectangulosJson(const std::string& filename,double limInfer
 
         if (std::isnan(altura) || std::isinf(altura)) continue;
 
-        // Calcular transformaciones para Pyrr
         json rectangulo;
+        rectangulo["transformacion"] = json::object(); // Asegurar que "transformacion" es un objeto
 
-        // 1. Posición: Centro del rectángulo en X, mitad de la altura en Y
-        rectangulo["transformacion"]["traslacion"] = {
-            x + deltaX / 2.0,  // Centro en X
-            altura / 2.0,      // Centro en Y
-            0.0                // Z (2D)
-        };
+        // Traslación (centro del rectángulo)
+        rectangulo["transformacion"]["traslacion"] = json::array({x + deltaX / 2.0, altura / 2.0, 0.0});
 
-        // 2. Escala: Ancho (deltaX) y altura
-        rectangulo["transformacion"]["escala"] = {
-            deltaX,   // Ancho del rectángulo
-            altura,   // Altura del rectángulo
-            1.0       // Profundidad (sin cambio)
-        };
+        // Escala (ancho y alto)
+        rectangulo["transformacion"]["escala"] = json::array({deltaX, altura, 1.0});
 
-        // 3. Rotación (opcional, 0 grados por defecto)
-        rectangulo["transformacion"]["rotacion"] = {
-            0.0,  // Ángulo en radianes
-            0.0,  // Eje X
-            0.0,  // Eje Y
-            1.0   // Eje Z (rotación 2D)
-        };
+        // Rotación (ángulo y vector)
+        rectangulo["transformacion"]["rotacion"] = json::array({0.0, 0.0, 0.0, 1.0}); // Ángulo y vector
 
         jsonData["rectangulos"].push_back(rectangulo);
     }
 
-    // Guardar en archivo
-    // Ruta base del proyecto
+    // Guardar en archivo (usando ruta relativa al ejecutable)
     std::wstring directorioProyecto = LR"(C:\Users\Pop90\OneDrive - Benemérita Universidad Autónoma de Puebla\Universidad\Pimer Semestre\Métodología de la Progamación\Riemann_3.04\)";
-
-    // Crear la ruta completa
-    fs::path rutaCompleta = fs::path(directorioProyecto) / filename;
+    fs::path rutaCompleta = fs::path(directorioProyecto) / filename; // Combina el directorio y el nombre del archivo
 
     std::ofstream archivo(rutaCompleta);
     if (archivo.is_open()) {
@@ -180,7 +163,6 @@ void Dominio::guardarRectangulosJson(const std::string& filename,double limInfer
         std::cerr << "Error al abrir el archivo: " << rutaCompleta << std::endl;
     }
 }
-
 
 
 

@@ -6,8 +6,6 @@ import numpy as np
 from pyrr import Matrix44
 from pyrr.matrix44 import create_from_axis_rotation
 
-# Variables globales
-# Si tienes puntos para la gráfica de la función, se cargarán desde otro archivo (opcional)
 puntos = []
 
 # Lista que almacenará las matrices de transformación (una por rectángulo)
@@ -29,13 +27,20 @@ def cargar_rectangulos_json():
             data = json.load(f)
             for rect in data["rectangulos"]:
                 traslacion = Matrix44.from_translation(rect["transformacion"]["traslacion"])
+                print("Matriz de traslación:", traslacion)  # Imprime la matriz
+
                 escala = Matrix44.from_scale(rect["transformacion"]["escala"])
+                print("Matriz de escala:", escala)  # Imprime la matriz
+
                 rotacion = create_from_axis_rotation(
                     np.array(rect["transformacion"]["rotacion"][1:4], dtype=np.float32),
                     rect["transformacion"]["rotacion"][0]
                 )
-                # La matriz final: traslación * rotación * escala
+                print("Matriz de rotación:", rotacion)  # Imprime la matriz
+
                 model = traslacion * rotacion * escala
+                print("Matriz de transformación final:", model)  # Imprime la matriz
+
                 rectangulos_matrices.append(model)
         print("Cantidad de rectángulos cargados:", len(rectangulos_matrices))
     except Exception as e:
@@ -78,7 +83,9 @@ def init_gl():
 
 
 def draw_axes():
-    """ Dibuja los ejes X e Y en color blanco. """
+    """ Dibuja los ejes X e Y con números adaptativos que incluyen decimales si el zoom es alto """
+    global zoom
+
     glColor3f(1, 1, 1)
     glBegin(GL_LINES)
     # Eje X
@@ -89,43 +96,83 @@ def draw_axes():
     glVertex2f(0, 100)
     glEnd()
 
+    # Determinar la separación de los números en los ejes basada en el zoom
+    base_spacing = 10  # Separación base de los números
+    if zoom > 5:
+        base_spacing = 1  # Muestra enteros más cercanos
+    if zoom > 20:
+        base_spacing = 0.5  # Muestra decimales más cercanos
+    if zoom > 50:
+        base_spacing = 0.1  # Muestra decimales más pequeños
+
+    # Redondear la separación a un número útil
+    spacing = max(base_spacing, 10 / zoom)  
+
+    # Dibujar números en el eje X
+    x_start = int(-100 / spacing) * spacing
+    x_end = int(100 / spacing) * spacing
+    x_range = np.arange(x_start, x_end + spacing, spacing)
+    
+    for i in x_range:
+        if abs(i) < 1e-3:  # Evita mostrar -0.0
+            i = 0
+        glRasterPos2f(i, -3 / zoom)  # Ajustar la posición del texto según el zoom
+        text = f"{i:.2f}" if zoom > 20 else f"{int(i)}"  # Mostrar decimales si el zoom es alto
+        for char in text:
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+
+    # Dibujar números en el eje Y
+    y_start = int(-100 / spacing) * spacing
+    y_end = int(100 / spacing) * spacing
+    y_range = np.arange(y_start, y_end + spacing, spacing)
+    
+    for i in y_range:
+        if abs(i) < 1e-3:
+            i = 0
+        glRasterPos2f(-5 / zoom, i)  # Ajustar la posición del texto según el zoom
+        text = f"{i:.2f}" if zoom > 20 else f"{int(i)}"
+        for char in text:
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+
+
 
 def draw_function():
-    """ Dibuja la función en verde (si se cargaron puntos). """
+    """ Dibuja la función en verde, evitando conectar puntos con saltos grandes y excluyendo valores cercanos a x = 0. """
     if not puntos:
         return
+
     glColor3f(0, 1, 0)
     glBegin(GL_LINE_STRIP)
-    for x, y in puntos:
-        glVertex2f(x, y)
+
+    threshold = 10  # Diferencia máxima permitida para evitar saltos grandes
+    last_x, last_y = puntos[0]
+
+    for x, y in puntos[1:]:
+        if abs(x) > 0.05:  # Evita valores cercanos a x = 0
+            if abs(y - last_y) > threshold:
+                glEnd()  # Termina la línea actual
+                glBegin(GL_LINE_STRIP)  # Inicia una nueva línea para evitar un salto incorrecto
+            glVertex2f(x, y)
+            last_x, last_y = x, y
+
     glEnd()
 
 
 def draw_rectangles():
-    """
-    Para cada matriz de transformación (calculada a partir del JSON),
-    se aplica la transformación y se dibuja un cuadrilátero unitario.
+    glColor3f(1, 0, 0)
+    for model in rectangulos_matrices:  # Verifica nombre de variable
+        x_pos = model[0, 3]  # Índice correcto para traslación X
+        if not (1 <= x_pos <= np.e):
+            continue
 
-    Se asume que el cuadrilátero base está definido en el rango:
-      (-0.5, -0.5) a (0.5, 0.5)
-    De esta forma, al aplicar la escala y traslación definidas,
-    el rectángulo se ubicará correctamente (por ejemplo, si en C++ se calculó
-    la traslación como [x + deltaX/2, altura/2, 0]).
-    """
-    glColor3f(1, 0, 0)  # Color rojo para los rectángulos
-    for model in rectangulos_matrices:
         glPushMatrix()
-        # OpenGL espera la matriz en formato columna mayor.
-        # Convertimos la matriz de Pyrr a un arreglo de 16 floats y la transponemos.
         glMultMatrixf(model.astype('float32').T)
-
         glBegin(GL_QUADS)
         glVertex2f(-0.5, -0.5)
         glVertex2f(0.5, -0.5)
         glVertex2f(0.5, 0.5)
         glVertex2f(-0.5, 0.5)
         glEnd()
-
         glPopMatrix()
 
 
