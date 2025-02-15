@@ -133,19 +133,25 @@ void Dominio::guardarRectangulosJson(const std::string& filename, double limInfe
         double x = limInferior + i * deltaX;
         double altura = f(x);
 
-        if (std::isnan(altura) || std::isinf(altura)) continue;
+        if (std::isnan(altura) || std::isinf(altura))
+            continue;
+
+        // Calcular los vértices para el rectángulo:
+        // Suponiendo que la base está en y=0 y la altura es 'altura'
+        double xIzq = x;            // coordenada x izquierda
+        double xDer = x + deltaX;     // coordenada x derecha
+        double yInf = 0.0;            // coordenada y inferior
+        double ySup = altura;         // coordenada y superior
 
         json rectangulo;
-        rectangulo["transformacion"] = json::object(); // Asegurar que "transformacion" es un objeto
-
-        // Traslación (centro del rectángulo)
-        rectangulo["transformacion"]["traslacion"] = json::array({x + deltaX / 2.0, altura / 2.0, 0.0});
-
-        // Escala (ancho y alto)
-        rectangulo["transformacion"]["escala"] = json::array({deltaX, altura, 1.0});
-
-        // Rotación (ángulo y vector)
-        rectangulo["transformacion"]["rotacion"] = json::array({0.0, 0.0, 0.0, 1.0}); // Ángulo y vector
+        // Se guardan los vértices en el siguiente orden:
+        // inferior izquierda, inferior derecha, superior derecha y superior izquierda.
+        rectangulo["vertices"] = json::array({
+            { xIzq, yInf, 0.0 },
+            { xDer, yInf, 0.0 },
+            { xDer, ySup, 0.0 },
+            { xIzq, ySup, 0.0 }
+        });
 
         jsonData["rectangulos"].push_back(rectangulo);
     }
@@ -163,6 +169,7 @@ void Dominio::guardarRectangulosJson(const std::string& filename, double limInfe
         std::cerr << "Error al abrir el archivo: " << rutaCompleta << std::endl;
     }
 }
+
 
 
 
