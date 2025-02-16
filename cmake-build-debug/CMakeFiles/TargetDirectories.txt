@@ -1,3 +1,0 @@
-C:/Users/Pop90/OneDrive - Benemérita Universidad Autónoma de Puebla/Universidad/Pimer Semestre/Métodología de la Progamación/Riemann_3.04/cmake-build-debug/CMakeFiles/Riemann_3_04.dir
-C:/Users/Pop90/OneDrive - Benemérita Universidad Autónoma de Puebla/Universidad/Pimer Semestre/Métodología de la Progamación/Riemann_3.04/cmake-build-debug/CMakeFiles/edit_cache.dir
-C:/Users/Pop90/OneDrive - Benemérita Universidad Autónoma de Puebla/Universidad/Pimer Semestre/Métodología de la Progamación/Riemann_3.04/cmake-build-debug/CMakeFiles/rebuild_cache.dir
