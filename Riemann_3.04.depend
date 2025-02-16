@@ -133,3 +133,76 @@
 	<iostream>
 	<string>
 
+1739161921 source:/home/luis/Riemann/cutIntegral.cpp
+	<iostream>
+	<string>
+	<vector>
+	<unordered_map>
+	<utility>
+	<iomanip>
+	"node.h"
+	"ExpressionParser.h"
+	"toPostFix.h"
+	"Utils.h"
+	"cutIntegral.h"
+
+1739161921 /home/luis/Riemann/node.h
+	<memory>
+
+1739161921 /home/luis/Riemann/ExpressionParser.h
+	<vector>
+	<string>
+	<iomanip>
+	"node.h"
+
+1739161921 /home/luis/Riemann/toPostFix.h
+	<vector>
+	<string>
+	<iostream>
+
+1739161921 /home/luis/Riemann/Utils.h
+	<string>
+	<vector>
+	<iostream>
+
+1739161921 /home/luis/Riemann/cutIntegral.h
+
+1739161921 source:/home/luis/Riemann/ExpressionParser.cpp
+	"ExpressionParser.h"
+	<iostream>
+	<stdexcept>
+	<math.h>
+
+1739601278 source:/home/luis/Riemann/main.cpp
+	<iostream>
+	<string>
+	<vector>
+	<unordered_map>
+	<utility>
+	<iomanip>
+	"node.h"
+	"ExpressionParser.h"
+	"toPostFix.h"
+	"Utils.h"
+	"cutIntegral.h"
+	"Dominio.h"
+
+1739161921 /home/luis/Riemann/Dominio.h
+	<string>
+	<vector>
+	<utility>
+
+1739161921 source:/home/luis/Riemann/toPostFix.cpp
+	"toPostFix.h"
+	"Utils.h"
+
+1739161921 source:/home/luis/Riemann/Utils.cpp
+	"Utils.h"
+	"sustx.h"
+	"cutIntegral.h"
+	<string>
+
+1739161921 /home/luis/Riemann/sustx.h
+	<iostream>
+	<string>
+

@@ -81,7 +81,7 @@ namespace fs = std::filesystem;
 
 void Dominio::guardarEnJson(const std::string& filename) {
     // Ruta base del proyecto
-    std::wstring directorioProyecto = LR"(C:\Users\Pop90\OneDrive - Benemérita Universidad Autónoma de Puebla\Universidad\Pimer Semestre\Métodología de la Progamación\Riemann_3.04\)";
+    std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
 
     // Crear la ruta completa
     fs::path rutaCompleta = fs::path(directorioProyecto) / filename;
@@ -157,7 +157,7 @@ void Dominio::guardarRectangulosJson(const std::string& filename, double limInfe
     }
 
     // Guardar en archivo (usando ruta relativa al ejecutable)
-    std::wstring directorioProyecto = LR"(C:\Users\Pop90\OneDrive - Benemérita Universidad Autónoma de Puebla\Universidad\Pimer Semestre\Métodología de la Progamación\Riemann_3.04\)";
+    std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
     fs::path rutaCompleta = fs::path(directorioProyecto) / filename; // Combina el directorio y el nombre del archivo
 
     std::ofstream archivo(rutaCompleta);

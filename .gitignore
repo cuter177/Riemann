@@ -1,0 +1,37 @@
+# Ignorar las carpetas de compilación
+/build/
+bin/
+obj/
+myenv/
+cmake-build-debug/
+
+#Archivo generado por JetBrains
+.idea/
+
+# Archivos generados por CMake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# Archivos de compilación comunes
+*.o
+*.out
+*.exe
+*.dSYM/
+*.a
+*.so
+*.out
+
+# Archivos de compilación de CodeBlocks
+*.depend
+*.cbp
+*.layout
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+#Configuracion personalizada
+config.cmake
+
