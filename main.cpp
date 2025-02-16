@@ -5,9 +5,23 @@
 #include <unordered_map>
 #include <utility>
 #include <iomanip>
-#include <windows.h>
-#include <io.h>
 #include <fcntl.h>
+
+#ifdef _WIN32
+    #include <windows.h>
+    #include <io.h>
+    #define SLEEP_FUNC Sleep
+#else
+    #include <unistd.h>
+    #define SLEEP_FUNC sleep
+    #include <sys/types.h>
+    #include <sys/wait.h>
+
+    // Definir PATH_MAX si no está definido
+    #ifndef PATH_MAX
+        #define PATH_MAX 4096
+    #endif
+#endif
 
 // Incluye tus otros headers personalizados
 #include "node.h"
@@ -81,13 +95,19 @@ int main()
         dominio.guardarEnJson("Datos.json");
         dominio.guardarRectangulosJson("Rectangulo.json", limInferior, limSuperior, deltaDeX);
 
-        Sleep(2000);
+        SLEEP_FUNC(2);  // Dormir 2 segundos
 
         // --- Ejecución del script de Python ---
-        // Actualizamos la ruta de python.exe a Python313
+        // Usar ruta relativa
+        #ifdef _WIN32
         std::wstring commandLine =
-            L"\"C:\\Users\\Pop90\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" "
-            L"\"C:\\Users\\Pop90\\OneDrive - Benem\u00E9rita Universidad Aut\u00F3noma de Puebla\\Universidad\\Pimer Semestre\\M\u00E9todolog\u00EDa de la Progamaci\u00F3n\\Riemann_3.04\\Graficadora.py\"";
+            L"\"python\" "
+            L"\"./Graficadora.py\"";  // Ruta relativa al script Python en la raíz del proyecto
+        #else
+        std::wstring commandLine =
+            L"\"python3\" "
+            L"\"./Graficadora.py\"";  // Ruta relativa al script Python en la raíz del proyecto
+        #endif
 
         wcout << L"Ejecutando comando: " << commandLine << endl;
 
@@ -95,50 +115,67 @@ int main()
         std::vector<wchar_t> cmdBuffer(commandLine.begin(), commandLine.end());
         cmdBuffer.push_back(0);  // Asegura la terminación nula
 
-        wchar_t currentDir[MAX_PATH];
-        if (!GetCurrentDirectoryW(MAX_PATH, currentDir)) {
-            wcerr << L"Error al obtener el directorio actual." << endl;
-            // Puedes asignar un valor por defecto o manejar el error
-        }
+        // En Windows obtenemos el directorio de trabajo
+        #ifdef _WIN32
+            wchar_t currentDir[MAX_PATH];
+            if (!GetCurrentDirectoryW(MAX_PATH, currentDir)) {
+                wcerr << L"Error al obtener el directorio actual." << endl;
+            }
+        #else
+            char currentDir[PATH_MAX];
+            if (getcwd(currentDir, sizeof(currentDir)) == NULL) {
+                cerr << "Error al obtener el directorio actual." << endl;
+            }
+        #endif
 
-        // (Opcional) Verificar que ambos archivos existan:
-        if (GetFileAttributesW(L"C:\\Users\\Pop90\\AppData\\Local\\Programs\\Python\\Python313\\python.exe") == INVALID_FILE_ATTRIBUTES)
-            wcerr << L"Error: No se encontró python.exe en la ruta especificada." << endl;
-        if (GetFileAttributesW(L"C:\\Users\\Pop90\\OneDrive - Benem\u00E9rita Universidad Aut\u00F3noma de Puebla\\Universidad\\Pimer Semestre\\M\u00E9todolog\u00EDa de la Progamaci\u00F3n\\Riemann_3.04\\Graficadora.py") == INVALID_FILE_ATTRIBUTES)
-            wcerr << L"Error: No se encontró Graficadora.py en la ruta especificada." << endl;
+        // Verificar la existencia de archivos en Windows
+        #ifdef _WIN32
+            if (GetFileAttributesW(L"./python") == INVALID_FILE_ATTRIBUTES)
+                wcerr << L"Error: No se encontró python.exe en la ruta especificada." << endl;
+            if (GetFileAttributesW(L"./Graficadora.py") == INVALID_FILE_ATTRIBUTES)
+                wcerr << L"Error: No se encontró Graficadora.py en la ruta especificada." << endl;
+        #endif
 
-        // Configurar la estructura para la creación del proceso
-        STARTUPINFOW si;
-        ZeroMemory(&si, sizeof(si));
-        si.cb = sizeof(si);
-        PROCESS_INFORMATION pi;
-        ZeroMemory(&pi, sizeof(pi));
+        // Convertir wstring a string
+        std::string commandStr(commandLine.begin(), commandLine.end());
 
-        if (!CreateProcessW(
-         nullptr,           // No se especifica un módulo por separado
-         cmdBuffer.data(),  // Buffer modificable con el comando
-         nullptr,           // Atributos de proceso por defecto
-         nullptr,           // Atributos de hilo por defecto
-         FALSE,             // No heredar handles
-         0,                 // Flags de creación
-         nullptr,           // Usar el entorno actual
-         currentDir,        // Directorio de trabajo: se usa el directorio actual
-         &si,
-         &pi))
-        {
-            DWORD err = GetLastError();
-            wcerr << L"Error al ejecutar CreateProcessW: " << err << endl;
-        }
-        else
-        {
-            // Espera a que el proceso termine y obtiene el código de salida
-            WaitForSingleObject(pi.hProcess, INFINITE);
-            DWORD exitCode;
-            GetExitCodeProcess(pi.hProcess, &exitCode);
-            wcout << L"Código de retorno: " << exitCode << endl;
-            CloseHandle(pi.hProcess);
-            CloseHandle(pi.hThread);
-        }
+        // Ejecución en Unix/Linux
+        #ifdef _WIN32
+            STARTUPINFO si = {0};
+            PROCESS_INFORMATION pi = {0};
+
+            if (!CreateProcessW(
+             nullptr,           // No se especifica un módulo por separado
+             commandLine.data(),  // Buffer de comando
+             nullptr,           // Atributos de proceso por defecto
+             nullptr,           // Atributos de hilo por defecto
+             FALSE,             // No heredar handles
+             0,                 // Flags de creación
+             nullptr,           // Usar el entorno actual
+             nullptr,           // Directorio de trabajo: se usa el directorio actual
+             &si,
+             &pi))
+            {
+                DWORD err = GetLastError();
+                wcerr << L"Error al ejecutar CreateProcessW: " << err << endl;
+            }
+            else
+            {
+                // Espera a que el proceso termine y obtiene el código de salida
+                WaitForSingleObject(pi.hProcess, INFINITE);
+                DWORD exitCode;
+                GetExitCodeProcess(pi.hProcess, &exitCode);
+                wcout << L"Código de retorno: " << exitCode << endl;
+                CloseHandle(pi.hProcess);
+                CloseHandle(pi.hThread);
+            }
+        #else
+            // Convertir comando wstring a char* para system()
+            int ret = system(commandStr.c_str());
+            if (ret != 0) {
+                cerr << "Error al ejecutar el comando Python" << endl;
+            }
+        #endif
 
         xi = 0;
         sumatoria = 0;
