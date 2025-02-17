@@ -50,7 +50,7 @@ int main()
     cortarIntegral integral;
     char answer{};
 
-    cout << "\nPresiona enter :" << endl;
+    cout << "\nPresiona enter... " << endl;
 
     // Bucle principal
     do

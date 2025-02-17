@@ -81,10 +81,10 @@ namespace fs = std::filesystem;
 
 void Dominio::guardarEnJson(const std::string& filename) {
     // Ruta base del proyecto
-    std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
+    //std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
 
     // Crear la ruta completa
-    fs::path rutaCompleta = fs::path(directorioProyecto) / filename;
+    fs::path rutaCompleta = fs::path("datos") / filename; //ruta relativa
 
     // Crear directorio si no existe
     if (!fs::exists(rutaCompleta.parent_path())) {
@@ -157,14 +157,15 @@ void Dominio::guardarRectangulosJson(const std::string& filename, double limInfe
     }
 
     // Guardar en archivo (usando ruta relativa al ejecutable)
-    std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
-    fs::path rutaCompleta = fs::path(directorioProyecto) / filename; // Combina el directorio y el nombre del archivo
+    //std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
+    //fs::path rutaCompleta = fs::path(directorioProyecto) / filename; // Combina el directorio y el nombre del archivo
+    fs::path rutaCompleta = fs::path("datos") / filename; //ruta relativa
 
     std::ofstream archivo(rutaCompleta);
     if (archivo.is_open()) {
         archivo << jsonData.dump(4);
         archivo.close();
-        std::cout << "JSON generado en: " << rutaCompleta << std::endl;
+        std::cout << "JSON generado en: " << rutaCompleta.string() << std::endl;
     } else {
         std::cerr << "Error al abrir el archivo: " << rutaCompleta << std::endl;
     }

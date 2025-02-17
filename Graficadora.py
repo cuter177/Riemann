@@ -25,7 +25,7 @@ def cargar_rectangulos_json():
     """
     global rectangulos
     try:
-        with open("Rectangulo.json", "r") as f:
+        with open("datos/Rectangulo.json", "r") as f:
             data = json.load(f)
             for rect in data["rectangulos"]:
                 vertices = rect.get("vertices", None)
@@ -48,7 +48,7 @@ def cargar_datos_funcion():
     """
     global puntos
     try:
-        with open("Datos.json", "r") as file:
+        with open("datos/Datos.json", "r") as file:
             datos = json.load(file)
             puntos = [(p["x"], p["y"]) for p in datos["puntos"]]
     except Exception as e:
@@ -99,9 +99,9 @@ def draw_axes():
         if abs(i) < 1e-3:
             i = 0
         glRasterPos2f(i, -3 / zoom)
-        text = f"{i:.2f}" if zoom > 20 else f"{int(i)}"
+        text = f"{i:.1f}" if zoom > 20 else f"{int(i)}"
         for char in text:
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
 
     # Dibujar números en el eje Y
     y_start = int(-100 / spacing) * spacing
@@ -111,9 +111,9 @@ def draw_axes():
         if abs(i) < 1e-3:
             i = 0
         glRasterPos2f(-5 / zoom, i)
-        text = f"{i:.2f}" if zoom > 20 else f"{int(i)}"
+        text = f"{i:.1f}" if zoom > 20 else f"{int(i)}"
         for char in text:
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ord(char))
+            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(char))
 
     glPopAttrib()  # Restaura todos los atributos
 
@@ -182,17 +182,22 @@ def mouse_click(button, state, x, y):
             mouse_x, mouse_y = x, y
         elif state == GLUT_UP:
             mouse_pressed = False
+           
+def update_motion(value):
+    glutPostRedisplay()
+    glutTimerFunc(1000 // 60, update_motion, 0)  # Llamada cada 1/60 segundos
 
 def mouse_motion(x, y):
     """ Actualiza el desplazamiento (pan) al mover el mouse con el botón presionado. """
     global pan_x, pan_y, mouse_x, mouse_y
     if mouse_pressed:
-        dx = (x - mouse_x) / 100.0
-        dy = (mouse_y - y) / 100.0  # Invertir 'y' para que el movimiento sea natural
-        pan_x += dx
-        pan_y += dy
-        mouse_x, mouse_y = x, y
-        glutPostRedisplay()
+        dx = (x - mouse_x) / 4.0
+        dy = (mouse_y - y) / 4.0  # Invertir 'y' para que el movimiento sea natural
+        if abs(dx) > 0.5 or abs(dy) > 0.5:  # Redibuja solo si el cambio es significativo
+            pan_x += dx
+            pan_y += dy
+            mouse_x, mouse_y = x, y
+            glutPostRedisplay()
 
 def mouse_wheel(button, state, x, y):
     """ Maneja el zoom con la rueda del mouse (si GLUT lo soporta). """

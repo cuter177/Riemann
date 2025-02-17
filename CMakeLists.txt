@@ -14,6 +14,9 @@ else()
     find_package(nlohmann_json REQUIRED)
 endif()
 
+# Configura las carpetas de salida para los ejecutables
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/Debug)
+
 # Archivos fuente del proyecto
 add_executable(Riemann_3_04
         cutIntegral.cpp
