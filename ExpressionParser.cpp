@@ -123,25 +123,27 @@ long double Expression_Parser::evaluateExpressionTree(const std::shared_ptr<node
         long double right = evaluateExpressionTree(root->right);
         long double ans;
 
-        //if left token is negative evaulate the operator by inverting the while expression after taking the abs of the left token
-        //This takes priority over -powers
-        if (root->left->data.size() > 1 && root->left->data[0] == '-')
-        {
-            left = abs(left);
-            ans = -(pow(left, right));
-
-        }
-        //If the power is negative then take the reciprocal of the power by taking the left ^ abs (right) /1
-        else if (root->right->data.size() > 1 && root->right->data[0] == '-')
+        // si la potencia es negativa, entonces se debe retornar 1/pow(left, abs(right))
+        if (root->right->data.size() > 1 && root->right->data[0] == '-')
         {
             return (1 / (pow(left, abs(right))));
         }
-        //If neither tokens are negative then evaluate it the normal way i.e n*n*n...
+        //si el token izquierdo es negativo y el derecho es un entero, maneje el signo según la paridad de la derecha
+        else if (left < 0 && floor(right) == right)
+        {
+            if (static_cast<int>(right) % 2 != 0) {
+                ans = -(pow(abs(left), right));
+            }
+            else {
+                ans = pow(abs(left), right);
+            }
+        }
         else {
             ans = pow(left, right);
         }
         return ans;
     }
+
     if (root->data == "cos")
         return cos(evaluateExpressionTree(root->right));
     if (root->data == "sin")
