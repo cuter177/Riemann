@@ -9,13 +9,20 @@
 #include "toPostFix.h"
 #include "Utils.h"
 #include <nlohmann/json.hpp>
-
+#ifdef _WIN32
+  #include <io.h>
+  #include <fcntl.h>
+#else
+  #include <unistd.h>
+  #include <fcntl.h>
+#endif
 
 using namespace std;
 using json = nlohmann::json;
+namespace fs = std::filesystem;
 
 // Constructor
-Dominio::Dominio(string exp, double dx) : expresion(exp), deltaX(dx) {}
+Dominio::Dominio(std::string exp, double dx) : expresion(exp), deltaX(dx) {}
 
 // Evalúa la función en un punto x
 double Dominio::f(double x) {
@@ -35,15 +42,24 @@ double Dominio::derivada(double x, double h) {
     return (f(x + h) - f(x)) / h;
 }
 
-// Detecta los intervalos continuos de la función en [-100, 100]
-vector<pair<double, double>> Dominio::detectarIntervalosContinuos() {
-    vector<pair<double, double>> intervalos;
-    double inicio = -100;
+// Detecta los intervalos continuos de la función en un rango dado
+std::vector<std::pair<double, double>> Dominio::detectarIntervalosContinuos(double start, double end) {
+    std::vector<std::pair<double, double>> intervalos;
+    double inicio = start;
     bool enIntervalo = false;
 
-    for (double x = -100; x <= 100; x += deltaX) {
-        double fx = f(x);
-        double df = derivada(x);
+    // Precompute function values and derivatives
+    std::vector<double> fx_values;
+    std::vector<double> df_values;
+    for (double x = start; x <= end; x += deltaX) {
+        fx_values.push_back(f(x));
+        df_values.push_back(derivada(x));
+    }
+
+    for (size_t i = 0; i < fx_values.size(); ++i) {
+        double x = start + i * deltaX;
+        double fx = fx_values[i];
+        double df = df_values[i];
 
         if (isnan(fx) || isinf(fx) || fabs(df) > 1e5) {
             if (enIntervalo) {
@@ -59,54 +75,35 @@ vector<pair<double, double>> Dominio::detectarIntervalosContinuos() {
     }
 
     if (enIntervalo) {
-        intervalos.push_back({inicio, 100});
+        intervalos.push_back({inicio, end});
     }
 
     return intervalos;
 }
 
-// Calcula el dominio e imprime los intervalos continuos
+// Define the calcularDominio method
 void Dominio::calcularDominio() {
-    vector<pair<double, double>> intervalos = detectarIntervalosContinuos();
-    cout << "Dominio de la función en [-100, 100]:\n";
-    for (const auto& intervalo : intervalos) {
-        cout << "[" << intervalo.first << ", " << intervalo.second << "]\n";
-    }
+    // Implementation of calcularDominio
+    // This method should contain the logic to calculate the domain of the function
 }
 
-// Guarda los puntos en un archivo JSON
-
-
-namespace fs = std::filesystem;
-
-void Dominio::guardarEnJson(const std::string& filename) {
-    // Ruta base del proyecto
-    //std::wstring directorioProyecto = LR"(/home/luis/Riemann)";
-
-    // Crear la ruta completa
+// Guarda los puntos en un archivo JSON en tiempo real
+void Dominio::guardarEnJsonTiempoReal(const std::string& filename, double start, double end, double zoom, double panx, double pany) {
     fs::path rutaCompleta = fs::path(R"(C:\Users\Pop90\Documents\Riemann_4.1\datos)") / filename;
-
-    // Crear directorio si no existe
-    if (!fs::exists(rutaCompleta.parent_path())) {
+    if (!fs::exists(rutaCompleta.parent_path()))
         fs::create_directories(rutaCompleta.parent_path());
-    }
 
-    // Abrir archivo de salida
     std::ofstream archivo(rutaCompleta);
     if (!archivo) {
-        std::cerr << "Error al abrir el archivo en: " << rutaCompleta.string() << std::endl;
+        std::cerr << "Error opening file: " << rutaCompleta.string() << std::endl;
         return;
     }
 
-    // Obtener los intervalos continuos
-    std::vector<std::pair<double, double>> intervalos = detectarIntervalosContinuos();
-
-    // Escribir JSON
+    std::vector<std::pair<double, double>> intervalos = detectarIntervalosContinuos(start, end);
     archivo << "{\n  \"puntos\": [\n";
     bool primerPunto = true;
-
     for (const auto& intervalo : intervalos) {
-        for (double x = intervalo.first; x <= intervalo.second; x += this->deltaX) {
+        for (double x = intervalo.first; x <= intervalo.second; x += deltaX) {
             double fx = f(x);
             if (!std::isnan(fx) && !std::isinf(fx)) {
                 if (!primerPunto) archivo << ",\n";
@@ -115,10 +112,10 @@ void Dominio::guardarEnJson(const std::string& filename) {
             }
         }
     }
-
     archivo << "\n  ]\n}\n";
+    archivo.flush();
+    // Commit call removed.
     archivo.close();
-
     std::cout << "Archivo JSON guardado en: " << rutaCompleta.string() << std::endl;
 }
 
@@ -155,7 +152,6 @@ void Dominio::guardarRectangulosJson(const std::string& filename, double limInfe
 
         jsonData["rectangulos"].push_back(rectangulo);
     }
-
 
     fs::path rutaCompleta = fs::path(R"(C:\Users\Pop90\Documents\Riemann_4.1\datos)") / filename;
 
