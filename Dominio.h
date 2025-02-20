@@ -13,7 +13,7 @@ private:
     // Métodos privados
     double f(double x);
     double derivada(double x, double h = 1e-5);
-    std::vector<std::pair<double, double>> detectarIntervalosContinuos();
+    std::vector<std::pair<double, double>> detectarIntervalosContinuos(double start, double end);
 
 public:
     // Constructor
@@ -22,8 +22,8 @@ public:
     // Métodos públicos
     void calcularDominio();
     void guardarEnJson(const std::string& filename);
-
     void guardarRectangulosJson(const std::string &filename, double limInferior, double limSuperior, double deltaX);
+    void guardarEnJsonTiempoReal(const std::string& filename, double start, double end, double zoom, double panx, double pany);
 };
 
-#endif // DOMINIO_H
+#endif // DOMINIO_H // DOMINIO_H

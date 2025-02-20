@@ -1,4 +1,7 @@
 import json
+import threading
+import time
+
 from OpenGL.GL import *
 from OpenGL.GLUT import *
 from OpenGL.GLU import *
@@ -18,6 +21,16 @@ pan_x, pan_y = 0.0, 0.0
 mouse_pressed = False
 mouse_x, mouse_y = 0, 0
 
+def guardar_parametros():
+    """ Guarda los parámetros de zoom y pan en un archivo JSON. """
+    parametros = {
+        "zoom": zoom,
+        "pan_x": pan_x,
+        "pan_y": pan_y
+    }
+    with open("C:\\Users\\Pop90\\Documents\\Riemann_4.1\\datos\\Parametros.json", "w") as file:
+        json.dump(parametros, file)
+
 def cargar_rectangulos_json():
     """
     Carga el JSON de rectángulos y guarda, para cada uno, la lista de vértices.
@@ -36,24 +49,31 @@ def cargar_rectangulos_json():
         print(f"Error al cargar 'Rectangulo.json': {e}")
 
 def cargar_datos_funcion():
-    """
-    (Opcional) Carga puntos para dibujar la función desde 'Datos.json'.
-    Se espera que tenga la estructura:
-    {
-       "puntos": [
-           {"x": valor, "y": valor},
-           ...
-       ]
-    }
-    """
     global puntos
-    try:
-        with open("C:\\Users\\Pop90\\Documents\\Riemann_4.1\\datos/Datos.json", "r") as file:
-            datos = json.load(file)
-            puntos = [(p["x"], p["y"]) for p in datos["puntos"]]
-    except Exception as e:
-        print(f"Error al cargar 'Datos.json': {e}")
+    file_path = r'C:\Users\Pop90\Documents\Riemann_4.1\datos\Datos.json'
+    max_attempts = 5
+    attempt = 0
+    while attempt < max_attempts:
+        try:
+            with open(file_path, 'r') as file:
+                content = file.read().strip()
+                if not content:
+                    raise ValueError("Empty file")
+                datos = json.loads(content)
+                if "puntos" not in datos or not isinstance(datos["puntos"], list):
+                    raise ValueError("Malformed JSON or missing 'puntos'")
+                puntos = [(p["x"], p["y"]) for p in datos["puntos"]]
+                return
+        except Exception as e:
+            print(f"Error loading Datos.json: {e}")
+            time.sleep(0.1)
+            attempt += 1
+    print("Failed to load Datos.json after multiple attempts")
 
+def actualizar_datos_funcion():
+    while True:
+        cargar_datos_funcion()
+        time.sleep(0.1)
 def init_gl():
     """ Configuración inicial de OpenGL. """
     glClearColor(0.15, 0.15, 0.15, 1)
@@ -182,29 +202,35 @@ def keyboard(key, x, y):
         zoom *= 1.1
     elif key == b'-':
         zoom /= 1.1
+    guardar_parametros()
     glutPostRedisplay()
 
+usuario_interactuo = False
+
+def mouse_motion(x, y):
+    global pan_x, pan_y, mouse_x, mouse_y, usuario_interactuo
+    if mouse_pressed:
+        dx = (x - mouse_x) / 5.0
+        dy = (mouse_y - y) / 5.0
+        # Solo actualiza si el movimiento es mayor a un umbral
+        if abs(dx) > 0.1 or abs(dy) > 0.1:
+            pan_x += dx
+            pan_y += dy
+            usuario_interactuo = True
+            glutPostRedisplay()
+        mouse_x, mouse_y = x, y
+
 def mouse_click(button, state, x, y):
-    """ Registra el estado del mouse para permitir el desplazamiento (pan). """
-    global mouse_pressed, mouse_x, mouse_y
+    global mouse_pressed
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
             mouse_pressed = True
             mouse_x, mouse_y = x, y
         elif state == GLUT_UP:
             mouse_pressed = False
-
-def mouse_motion(x, y):
-    """ Actualiza el desplazamiento (pan) al mover el mouse con el botón presionado. """
-    global pan_x, pan_y, mouse_x, mouse_y
-    if mouse_pressed:
-        # Ajustamos la sensibilidad dividiendo por 5.0
-        dx = (x - mouse_x) / 5.0
-        dy = (mouse_y - y) / 5.0  # Se invierte 'y' para un movimiento natural
-        pan_x += dx
-        pan_y += dy
-        mouse_x, mouse_y = x, y
-        glutPostRedisplay()
+            # Solo guardar si el usuario ha interactuado de verdad
+            if usuario_interactuo:
+                guardar_parametros()
 
 def mouse_wheel(button, state, x, y):
     """ Maneja el zoom con la rueda del mouse (si GLUT lo soporta). """
@@ -213,6 +239,7 @@ def mouse_wheel(button, state, x, y):
         zoom *= 1.1
     elif state == -1:  # Scroll down
         zoom /= 1.1
+    guardar_parametros()
     glutPostRedisplay()
 
 def update_motion(value):
@@ -223,6 +250,10 @@ def update_motion(value):
 
 def main():
     global zoom, pan_x, pan_y
+    zoom = 19.19434249577509
+    pan_x = 0.0
+    pan_y = 0.0
+    guardar_parametros()
     # Cargar datos: rectángulos y (opcionalmente) la función
     cargar_rectangulos_json()
     cargar_datos_funcion()  # Opcional, si cuentas con 'Datos.json'
@@ -233,12 +264,6 @@ def main():
     glutInitWindowSize(800, 600)
     glutCreateWindow("Rectángulos Riemann desde JSON".encode("utf-8"))
     init_gl()
-
-    # Valores iniciales (ya definidos globalmente)
-    zoom = 19.19434249577509
-    pan_x = 0.0
-    pan_y = 0.0
-
     # Registrar callbacks de GLUT
     glutDisplayFunc(display)
     glutKeyboardFunc(keyboard)
@@ -252,4 +277,6 @@ def main():
     glutMainLoop()
 
 if __name__ == "__main__":
+    actualizacion_thread = threading.Thread(target=actualizar_datos_funcion, daemon=True)
+    actualizacion_thread.start()
     main()
