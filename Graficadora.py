@@ -208,11 +208,11 @@ def keyboard(key, x, y):
 usuario_interactuo = False
 
 def mouse_motion(x, y):
-    global pan_x, pan_y, mouse_x, mouse_y, usuario_interactuo
+    global pan_x, pan_y, mouse_x, mouse_y, usuario_interactuo, zoom
     if mouse_pressed:
-        dx = (x - mouse_x) / 5.0
-        dy = (mouse_y - y) / 5.0
-        # Solo actualiza si el movimiento es mayor a un umbral
+        # Ajustar el factor divisor para que tenga en cuenta el zoom
+        dx = (x - mouse_x) / (0.5 * zoom)
+        dy = (mouse_y - y) / (0.5 * zoom)
         if abs(dx) > 0.1 or abs(dy) > 0.1:
             pan_x += dx
             pan_y += dy
@@ -221,14 +221,13 @@ def mouse_motion(x, y):
         mouse_x, mouse_y = x, y
 
 def mouse_click(button, state, x, y):
-    global mouse_pressed
+    global mouse_pressed, mouse_x, mouse_y
     if button == GLUT_LEFT_BUTTON:
         if state == GLUT_DOWN:
             mouse_pressed = True
             mouse_x, mouse_y = x, y
         elif state == GLUT_UP:
             mouse_pressed = False
-            # Solo guardar si el usuario ha interactuado de verdad
             if usuario_interactuo:
                 guardar_parametros()
 

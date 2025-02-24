@@ -116,8 +116,8 @@ void ejecutarScriptPythonEnThread(Dominio &dominio, double zoom, double pan_x, d
         leerParametros(zoom, pan_x, pan_y);
         cout << zoom << " " << pan_x << " " << pan_y << endl;
         // Compute visible x-axis range based on the current zoom and pan_x.
-        double visibleX_min = (-100.0 / zoom) - pan_x;
-        double visibleX_max = (100.0 / zoom) - pan_x;
+        double visibleX_min = (-100.0 / zoom) - (pan_x / zoom);
+        double visibleX_max = (100.0 / zoom) - (pan_x / zoom);
         // Save JSON with current visible limits.
         dominio.guardarEnJsonTiempoReal("Datos.json", visibleX_min, visibleX_max, zoom, pan_x, pan_y);
         cout << "Datos.json actualizado" << endl;
