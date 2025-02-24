@@ -22,17 +22,31 @@
 #include "Dominio.h"
 
 using json = nlohmann::json;
+namespace fs = std::filesystem;
 using namespace std;
 std::atomic<bool> pythonScriptRunning{false};
 
+string obtenerDirectorioBase() {
+    char path[MAX_PATH];
+    GetModuleFileNameA(nullptr, path, MAX_PATH);
+    return fs::path(path).parent_path().string();
+}
+
+string obtenerDirectorioRaiz() {
+    fs::path baseDir = obtenerDirectorioBase();
+    while (!baseDir.empty() && baseDir.filename() != "Riemann_4.1") {
+        baseDir = baseDir.parent_path();
+    }
+    return baseDir.string();
+}
+
 bool fileExists(const string &path) {
-    ifstream file(path);
-    return file.good();
+    return fs::exists(path);
 }
 
 void leerParametros(double &zoom, double &pan_x, double &pan_y) {
-    const string parametrosPath = "C:\\Users\\Pop90\\Documents\\Riemann_4.1\\datos\\Parametros.json";
-    // Retry if file does not exist immediately.
+    string raizDir = obtenerDirectorioRaiz();
+    string parametrosPath = (fs::path(raizDir) / "datos" / "Parametros.json").string();
     int retryCount = 0;
     while (!fileExists(parametrosPath) && retryCount < 5) {
         this_thread::sleep_for(chrono::milliseconds(100));
@@ -52,9 +66,10 @@ void leerParametros(double &zoom, double &pan_x, double &pan_y) {
 }
 
 void ejecutarScriptPython() {
-    wstring commandLine =
-        L"\"C:\\Users\\Pop90\\AppData\\Local\\Programs\\Python\\Python313\\python.exe\" "
-        L"\"C:\\Users\\Pop90\\Documents\\Riemann_4.1\\Graficadora.py\"";
+    string raizDir = obtenerDirectorioRaiz();
+    wstring pythonPath = L"C:\\Users\\Pop90\\AppData\\Local\\Programs\\Python\\Python313\\python.exe";
+    wstring scriptPath = fs::absolute(fs::path(raizDir) / "Graficadora.py").wstring();
+    wstring commandLine = L"\"" + pythonPath + L"\" \"" + scriptPath + L"\"";
     wcout << L"Ejecutando comando: " << commandLine << endl;
 
     vector<wchar_t> cmdBuffer(commandLine.begin(), commandLine.end());
@@ -64,11 +79,6 @@ void ejecutarScriptPython() {
     if (!GetCurrentDirectoryW(MAX_PATH, currentDir)) {
         wcerr << L"Error al obtener el directorio actual." << endl;
     }
-
-    if (GetFileAttributesW(L"C:\\Users\\Pop90\\AppData\\Local\\Programs\\Python\\Python313\\python.exe") == INVALID_FILE_ATTRIBUTES)
-        wcerr << L"Error: No se encontró python.exe en la ruta especificada." << endl;
-    if (GetFileAttributesW(L"C:\\Users\\Pop90\\Documents\\Riemann_4.1\\Graficadora.py") == INVALID_FILE_ATTRIBUTES)
-        wcerr << L"Error: No se encontró Graficadora.py en la ruta especificada." << endl;
 
     STARTUPINFOW si;
     ZeroMemory(&si, sizeof(si));
@@ -105,6 +115,9 @@ void ejecutarScriptPython() {
         CloseHandle(pi.hThread);
     }
 }
+
+
+
 
 void ejecutarScriptPythonEnThread(Dominio &dominio, double zoom, double pan_x, double pan_y) {
     // Create thread to execute the Python script.
