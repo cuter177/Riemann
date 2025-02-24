@@ -22,14 +22,15 @@
 #include "Dominio.h"
 
 using json = nlohmann::json;
-namespace fs = std::filesystem;
 using namespace std;
 std::atomic<bool> pythonScriptRunning{false};
+
+namespace fs = std::filesystem;
 
 string obtenerDirectorioBase() {
     char path[MAX_PATH];
     GetModuleFileNameA(nullptr, path, MAX_PATH);
-    return fs::path(path).parent_path().string();
+    return fs::weakly_canonical(fs::path(path)).parent_path().string();
 }
 
 string obtenerDirectorioRaiz() {
@@ -115,8 +116,6 @@ void ejecutarScriptPython() {
         CloseHandle(pi.hThread);
     }
 }
-
-
 
 
 void ejecutarScriptPythonEnThread(Dominio &dominio, double zoom, double pan_x, double pan_y) {
